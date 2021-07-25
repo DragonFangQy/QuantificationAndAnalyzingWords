@@ -1,6 +1,8 @@
 from io import StringIO
 
 import re
+
+import itertools
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfdocument import PDFDocument
@@ -63,10 +65,7 @@ class PDFParse(object):
         # airplane/aeroplane 写两行  airplane\naeroplane
         # air-conditioning air-conditioner 写两行 air-conditioning\nair-conditioner
         # apologize/-ise apologetic 写三行     apologize\napologise\napologetic
-        # /-
         with open(file_path, "w", encoding="utf8") as wf:
-
-            # for line_ in list(set(content)):
 
             for line_ in content:
                 line_ = self.special_handle(line_)
@@ -78,6 +77,13 @@ class PDFParse(object):
 
     @staticmethod
     def special_handle(string):
+        """
+        对解析的PDF 内容进行特殊处理
+
+        :param string:
+        :return:
+        """
+
         result_str = ""
 
         re_search = re.search("[A-Za-z]+", string)
@@ -88,9 +94,11 @@ class PDFParse(object):
         # 'bound１'
         string = re.sub("\d+", "", string)
 
+        # apt．
+        string = re.sub("．", "", string)
+
         # coup(d􀆳état)
         string = re.sub("\(d􀆳état\)", "", string)
-
 
         # air-conditioning air-conditioner 写两行 air-conditioning\nair-conditioner
         string = re.sub("\s+", "\n", string)
@@ -126,6 +134,25 @@ class PDFParse(object):
 
         return string
 
+    @staticmethod
+    def remove_duplication_word(file_path):
+        """
+        对文件内容去重
+
+        :param file_path:
+        :return:
+        """
+
+        with open(file_path, "r") as rf:
+            rf_list = rf.readlines()
+            rf_list.sort()
+
+            with open(file_path, "w") as wf:
+                for word, grouper in itertools.groupby(rf_list):
+                    if word == "\n":
+                        continue
+                    wf.write(word)
+
     def run(self):
 
         parse_result = self.get_cet_test_vocabulary(self.pdf_file_name, self.page_range)
@@ -135,6 +162,8 @@ class PDFParse(object):
         parse_result_list = parse_result.splitlines()
 
         self.write_file(self.file_path, parse_result_list)
+
+        self.remove_duplication_word(self.file_path)
         print(parse_result)
 
 
