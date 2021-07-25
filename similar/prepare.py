@@ -1,19 +1,39 @@
-from io import StringIO
+
+import itertools
+import os
 
 from Levenshtein import distance, ratio
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfparser import PDFParser
 
 words_list = ["narrow", "narrowA", "sorrow", "borrow", "borrowA", "borrowB", "arrow", "row", "precision"]
 
 
+class SimilarWord(object):
+    def __init__(self, word, similar_list):
+        self.word = word
+        self.similar_list = similar_list
+
+    def __str__(self):
+        # ### aa
+        # > bbb bbb bbb bbb bbb
+
+        line_format = "> %s %s %s %s %s"
+
+        dispose_size = 5
+        quotient, remainder = len(self.similar_list) // dispose_size, len(self.similar_list) % dispose_size
+        counter = quotient + 1 if remainder > 0 else quotient
+
+        result_list = []
+
+        result_list.append("### %s" % self.word)
+
+        for loop in range(counter):
+            result_list.append(line_format % self.similar_list[loop * dispose_size:(loop + 1) * dispose_size])
+
+        return "\n".join(result_list)
+
+
 def compute_similar_score(string1, string2, switch_value=3):
     """
-
     计算相似度
 
     通过 Levenshtein 的 distance 和 ratio
@@ -31,51 +51,47 @@ def compute_similar_score(string1, string2, switch_value=3):
     return 1
 
 
-def get_cet_test_vocabulary(pdf_file_name, page_no: tuple = (20, 149)):
+def marge_word_file(marge_file_path):
     """
-    通过考试大纲 pdf , 获取考试词汇
+    合并单词文件并去重
 
-    :param pdf_file_name: 文件名
-    :param page_no: 元组 , [起始页码,结束页码) , 从 0 开始计数
     :return:
     """
 
-    output_string = StringIO()
-    with open(pdf_file_name, 'rb') as in_file:
-        parser = PDFParser(in_file)
-        doc = PDFDocument(parser)
+    word_file_path_list = []
+    word_list = []
+    for root, dirs, files in os.walk("../word"):
+        for file in files:
+            word_file_path_list.append(root + "/" + file)
 
-        rsrcmgr = PDFResourceManager()
-        device = TextConverter(rsrcmgr, output_string, laparams=LAParams())
-        interpreter = PDFPageInterpreter(rsrcmgr, device)
+    for word_file_path in word_file_path_list:
+        with open(word_file_path, "r") as rf:
+            word_list.extend(rf.readlines())
 
-        for (pageno, page) in enumerate(PDFPage.create_pages(doc)):
-
-            if pageno in range(*page_no):
-                interpreter.process_page(page)
-
-            if pageno >= page_no[1]:
-                break
-
-    return output_string.getvalue()
+    word_list.sort()
+    with open(marge_file_path, "w") as wf:
+        for word, grouper in itertools.groupby(word_list):
+            if word == "\n":
+                continue
+            wf.write(word)
 
 
 if __name__ == '__main__':
-
-    for item in words_list[:]:
-        item_seq1 = item
-        item_seq2 = words_list[:]
-        item_seq2.remove(item)
-
-        for item_b in item_seq2:
-            str1 = item_seq1
-            str2 = item_b
-
-            print(str1, '\t', str2)
-            print(compute_similar_score(str1, str2))
-
-            print()
-
-        print()
-        print("--" * 20)
-        print()
+    # for item in words_list[:]:
+    #     item_seq1 = item
+    #     item_seq2 = words_list[:]
+    #     item_seq2.remove(item)
+    #
+    #     for item_b in item_seq2:
+    #         str1 = item_seq1
+    #         str2 = item_b
+    #
+    #         print(str1, '\t', str2)
+    #         print(compute_similar_score(str1, str2))
+    #
+    #         print()
+    #
+    #     print()
+    #     print("--" * 20)
+    #     print()
+    marge_word_file("../word/002_marge_file.word")
