@@ -1,0 +1,13 @@
+Levenshtein
+click==7.1.2
+Flask==1.1.2
+itsdangerous==1.1.0
+Jinja2==2.11.2
+lxml==4.6.3
+MarkupSafe==1.1.1
+numpy==1.19.2
+opencv-python==4.4.0.44
+python-docx==0.8.11
+python-Levenshtein-wheels==0.13.2
+redis==3.5.3
+Werkzeug==1.0.1
