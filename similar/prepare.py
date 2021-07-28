@@ -110,8 +110,8 @@ class SimilarWord(object):
 
         # 编辑距离小于 等于临界值 , 相似度为 1
         # 即两词相似
-        if score_distance <= self.distance_switch_value \
-                and len(string1) + len(string2) > self.distance_switch_value * 2:
+        if score_distance <= self.distance_switch_value:  # \
+            # and len(string1) + len(string2) > self.distance_switch_value * 3:
             return True
 
         score_ratio = ratio(string1, string2)
@@ -138,29 +138,36 @@ class SimilarWord(object):
         # 获取副词目录下 word 文件
         for root, dirs, files in os.walk(self.check_similar_path):  # "../word"):
             for file in files:
-                if file.endswith("word"):
-                    word_file_path_list.append(root + "/" + file)
+                if not file.startswith("00") and file.endswith("word"):
+                    word_file_path_list.append(root + file)
 
         # 获取文件内容
         for word_file_path in word_file_path_list:
             with open(word_file_path, "r") as rf:
                 word_list.extend(rf.readlines())
 
+        # 删除文件
+        if os.path.isfile(self.check_similar_file_name):
+            os.remove(self.check_similar_file_name)
+
         # 内容去重并写入文件
         word_list.sort()
         word_list = itertools.groupby(word_list)
 
         for word, grouper in word_list:
-            if word == strip_str:
+            word = word.strip(strip_str)
+
+            if len(word.strip(strip_str)) < self.distance_switch_value:
                 continue
 
             # check_similar_file_name not None 则写入文件
             if self.check_similar_file_name is not None:
                 with open(self.check_similar_file_name, "a+") as wf:
                     wf.write(word)
+                    wf.write("\n")
 
             # 将去重后的内容村存入 check_similar_list
-            self.check_similar_list.append(word.strip(strip_str))
+            self.check_similar_list.append(word)
 
     def word_is_none(self):
         """
@@ -256,6 +263,7 @@ class SimilarWord(object):
 
 
 if __name__ == '__main__':
-    sw = SimilarWord("../word/", check_similar_file_name="../word/002_marge_file.word",
-                     similar_result_file_path="../word/001_similar_word.txt")
+    word_file_path = "../word_file/"
+    sw = SimilarWord(word_file_path, check_similar_file_name=word_file_path + "002_marge_file.word",
+                     similar_result_file_path=word_file_path + "001_similar_word.txt")
     sw.run()

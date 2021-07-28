@@ -5,4 +5,4 @@
 
 spider_name = "koolearn_tag"
 
-file_name = "../word/koolearn_tag.word"
+file_name = "../word_file/koolearn_tag.word"

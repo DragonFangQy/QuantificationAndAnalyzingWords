@@ -168,5 +168,5 @@ class PDFParse(object):
 
 
 if __name__ == '__main__':
-    pdf_parse = PDFParse("55b02330ac17274664f06d9d3db8249d.pdf", "../../word/pdf_parse.word")
+    pdf_parse = PDFParse("55b02330ac17274664f06d9d3db8249d.pdf", "../../word_file/pdf_parse.word")
     pdf_parse.run()

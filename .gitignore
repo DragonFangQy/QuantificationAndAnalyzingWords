@@ -117,3 +117,4 @@ dmypy.json
 .idea/
 
 /demo*
+word_file/
